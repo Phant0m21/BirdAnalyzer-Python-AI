@@ -1,0 +1,25 @@
+services:
+  ai:
+    build:
+      context: .
+      dockerfile: Dockerfile.ai
+    ports:
+      - "8001:8001"
+    volumes:
+      - bird_data:/app
+    restart: unless-stopped
+
+  host:
+    build:
+      context: .
+      dockerfile: Dockerfile.host
+    ports:
+      - "8000:8000"
+    environment:
+      AI_SERVER: http://ai:8001
+    depends_on:
+      - ai
+    restart: unless-stopped
+
+volumes:
+  bird_data:
