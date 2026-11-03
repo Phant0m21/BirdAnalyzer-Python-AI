@@ -1,12 +1,32 @@
 services:
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: bird_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbit_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
   ai:
     build:
       context: .
       dockerfile: Dockerfile.ai
     ports:
       - "8001:8001"
+    environment:
+      RABBITMQ: amqp://guest:guest@rabbitmq:5672/
     volumes:
       - bird_data:/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     restart: unless-stopped
 
   host:
@@ -16,10 +36,15 @@ services:
     ports:
       - "8000:8000"
     environment:
-      AI_SERVER: http://ai:8001
+      RABBITMQ: amqp://guest:guest@rabbitmq:5672/
+    volumes:
+      - host_data:/data
     depends_on:
-      - ai
+      rabbitmq:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
+  rabbit_data:
   bird_data:
+  host_data:
