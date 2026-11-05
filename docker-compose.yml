@@ -5,6 +5,9 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: bird
+      RABBITMQ_DEFAULT_PASS: birdpass
     volumes:
       - rabbit_data:/var/lib/rabbitmq
     healthcheck:
@@ -21,9 +24,7 @@ services:
     ports:
       - "8001:8001"
     environment:
-      RABBITMQ: amqp://guest:guest@rabbitmq:5672/
-    volumes:
-      - bird_data:/app
+      RABBITMQ: amqp://bird:birdpass@rabbitmq:5672/
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -36,7 +37,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      RABBITMQ: amqp://guest:guest@rabbitmq:5672/
+      RABBITMQ: amqp://bird:birdpass@rabbitmq:5672/
     volumes:
       - host_data:/data
     depends_on:
@@ -46,5 +47,4 @@ services:
 
 volumes:
   rabbit_data:
-  bird_data:
   host_data:

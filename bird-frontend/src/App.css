@@ -1,0 +1,88 @@
+.app {
+  width: 100%;
+  max-width: 600px;
+  margin: 60px auto;
+  padding: 30px;
+  text-align: center;
+}
+
+h1 {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  margin-bottom: 35px;
+}
+
+.upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.upload-button,
+.analyze-button {
+  background: #0878d1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 48px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+
+
+.preview {
+  max-width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+}
+
+.filename {
+  color: #555;
+  overflow-wrap: anywhere;
+}
+
+.status {
+  color: #0878d1;
+}
+
+.error {
+  color: #d32f2f;
+}
+
+.result {
+  margin-top: 35px;
+  padding: 25px;
+  text-align: left;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.result h2 {
+  color: #02315e;
+  text-align: center;
+}
+
+.result h3 {
+  margin-top: 25px;
+}
+
+.prediction {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.description {
+  margin-top: 20px;
+}
+
+.date {
+  font-size: 13px;
+}

@@ -7,10 +7,22 @@ import time
 import pika
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-RABBITMQ = os.getenv("RABBITMQ", "amqp://guest:guest@rabbitmq:5672/")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+RABBITMQ = os.getenv("RABBITMQ", "amqp://bird:birdpass@rabbitmq:5672/")
 DATABASE = "/data/host.db"
 
 
@@ -42,6 +54,7 @@ def receive_results():
                 pika.URLParameters(RABBITMQ)
             )
             channel = connection.channel()
+
             channel.queue_declare(
                 queue="bird_results",
                 durable=True
@@ -50,12 +63,15 @@ def receive_results():
             def callback(ch, method, properties, body):
                 try:
                     data = json.loads(body)
+
                     save_task(
                         data["task_id"],
                         "completed",
                         json.dumps(data["result"], ensure_ascii=False)
                     )
+
                     ch.basic_ack(delivery_tag=method.delivery_tag)
+
                 except Exception:
                     ch.basic_nack(
                         delivery_tag=method.delivery_tag,
@@ -63,10 +79,12 @@ def receive_results():
                     )
 
             channel.basic_qos(prefetch_count=1)
+
             channel.basic_consume(
                 queue="bird_results",
                 on_message_callback=callback
             )
+
             channel.start_consuming()
 
         except Exception as error:
@@ -97,7 +115,7 @@ def analyze(file: UploadFile = File(...)):
     if extension not in [".jpg", ".jpeg", ".png"]:
         raise HTTPException(
             status_code=400,
-            detail="Only JPG, JPEG and PNG are supported"
+            detail="Only JPG and PNG"
         )
 
     try:
@@ -117,9 +135,12 @@ def analyze(file: UploadFile = File(...)):
             "image": image_data.hex()
         }
 
+        save_task(task_id, "processing")
+
         connection = pika.BlockingConnection(
             pika.URLParameters(RABBITMQ)
         )
+
         channel = connection.channel()
 
         channel.queue_declare(
@@ -138,8 +159,6 @@ def analyze(file: UploadFile = File(...)):
 
         connection.close()
 
-        save_task(task_id, "processing")
-
         return {
             "task_id": task_id,
             "status": "processing",
@@ -148,11 +167,13 @@ def analyze(file: UploadFile = File(...)):
 
     except HTTPException:
         raise
+
     except Exception as error:
         raise HTTPException(
             status_code=500,
             detail=str(error)
         )
+
     finally:
         file.file.close()
 
